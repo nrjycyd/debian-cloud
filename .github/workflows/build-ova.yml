@@ -1,0 +1,68 @@
+name: 🚀 Build Debian Cloud Image OVA
+
+on:
+  # 触发工作流的事件
+  push:
+    branches:
+      - master
+      - main
+  # 允许手动触发
+  workflow_dispatch:
+    inputs:
+      debian_version:
+        description: 'Debian Version/Codename to build (e.g., bookworm, 12, trixie)'
+        required: true
+        default: 'bookworm'
+
+jobs:
+  build_ova:
+    # 使用最新的 Ubuntu Linux 环境
+    runs-on: ubuntu-latest
+    
+    # 获取用户在手动触发时输入的版本，否则使用默认的 'bookworm'
+    env:
+      TARGET_VERSION: ${{ github.event.inputs.debian_version || 'bookworm' }}
+
+    steps:
+      - name: 1. Checkout Repository Code
+        uses: actions/checkout@v4
+        
+      # 确保您的脚本文件存在于仓库的根目录，例如：debian-ova-creator.sh
+      - name: 2. Make Script Executable
+        run: chmod +x debian-ova-creator.sh
+
+      - name: 3. Install Dependencies (wget & qemu-utils)
+        run: |
+          echo "Updating system packages and installing dependencies..."
+          sudo apt update
+          # qemu-utils 包含 qemu-img 工具
+          sudo apt install -y wget qemu-utils
+
+      - name: 4. ⚙️ Run OVA Creation Script
+        id: run_script
+        # 执行脚本，使用传入的版本参数
+        run: |
+          echo "Starting build for Debian version: $TARGET_VERSION"
+          ./debian-ova-creator.sh -d "$TARGET_VERSION"
+          
+          # 获取生成的 OVA 文件名，用于下一步的上传
+          # 格式应为：debian-12-genericcloud-amd64.ova (或类似)
+          FILE_NAME=$(ls debian-*-genericcloud-amd64.ova)
+          echo "Generated OVA file: $FILE_NAME"
+          echo "OVA_FILE_NAME=$FILE_NAME" >> $GITHUB_OUTPUT
+
+      - name: 5. ⬆️ Upload Generated OVA as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: debian-${{ env.TARGET_VERSION }}-ova
+          # 使用上一步获取到的文件名
+          path: ${{ steps.run_script.outputs.OVA_FILE_NAME }}
+          retention-days: 7
+          if-no-files-found: error
+          
+      - name: 6. Cleanup (Optional)
+        if: always()
+        run: |
+          echo "Build finished successfully."
+          # 可以在此添加删除下载的 qcow2 镜像的清理步骤，以节省 Runner 空间
+          # rm -f *.qcow2
