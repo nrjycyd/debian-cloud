@@ -143,7 +143,7 @@ echo "║ Username: $username"
 echo "╚════════════════════════════════════════╝"
 echo ""
 
-# --- 🚀 区域 1: ConfigDrive ISO 生成 (NoCloud 模式) ---
+# --- 区域 1: ConfigDrive ISO 生成 (NoCloud 模式) ---
 
 # 生成 Cloud-Init config (user-data) 和 Meta-data 文件
 CLOUD_CONFIG_FILE=$(mktemp)
@@ -156,17 +156,13 @@ EOFCONFIG
 
 if [[ -n "$username" ]]; then
     cat >> "$CLOUD_CONFIG_FILE" << EOFCONFIG
-#cloud-config
 users:
   - name: $username
-    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    groups: sudo
     shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    plain_text_passwd: '$password'
     lock_passwd: false
-
-chpasswd:
-  list: |
-    $username:$password
-  expire: false
 EOFCONFIG
 
     if [[ -n "$ssh_public_key" ]] && [[ -f "$ssh_public_key" ]]; then
@@ -226,7 +222,7 @@ fi
 
 FILE_DEST_SIZE=$(wc -c "${FILE_NAME}.${FILE_DEST_EXT}" | cut -d " " -f1)
 
-# --- 🚀 区域 2: OVF 配置修改 (移除 ProductSection, 添加 ISO 引用) ---
+# --- 区域 2: OVF 配置修改 (禁止自动启动, 添加 ISO 引用) ---
 
 # Generate OVF configuration
 echo "📝 Generating OVF configuration..."
@@ -247,14 +243,14 @@ cat > "${FILE_NAME}.ovf" << EOF
       <Description>The VM Network network</Description>
     </Network>
   </NetworkSection>
-  <VirtualSystem ovf:id="${FILE_NAME}-${CURRENT_DATE}">
-    <Info>A virtual machine</Info>
+  <VirtualSystem ovf:id="${FILE_NAME}-${CURRENT_DATE}" vmw:ovf.powerOn="false"> <Info>A virtual machine</Info>
     <Name>${FILE_NAME}-${CURRENT_DATE}</Name>
     <OperatingSystemSection ovf:id="${OVF_OS_ID}" vmw:osType="${OVF_OS_TYPE}">
       <Info>The kind of installed guest operating system</Info>
       <Description>Debian GNU/Linux ${DEBIAN_VERSION} (64-bit)</Description>
     </OperatingSystemSection>
-    <VirtualHardwareSection> <Info>Virtual hardware requirements</Info>
+    <VirtualHardwareSection>
+      <Info>Virtual hardware requirements</Info>
       <System>
         <vssd:ElementName>Virtual Hardware Family</vssd:ElementName>
         <vssd:InstanceID>0</vssd:InstanceID>
@@ -304,7 +300,8 @@ cat > "${FILE_NAME}.ovf" << EOF
         <rasd:AddressOnParent>0</rasd:AddressOnParent>
         <rasd:AutomaticAllocation>false</rasd:AutomaticAllocation>
         <rasd:ElementName>CD/DVD Drive 1 (ConfigDrive)</rasd:ElementName>
-        <rasd:HostResource>ovf:/file/file2</rasd:HostResource> <rasd:InstanceID>11</rasd:InstanceID>
+        <rasd:HostResource>ovf:/file/file2</rasd:HostResource>
+        <rasd:InstanceID>11</rasd:InstanceID>
         <rasd:Parent>5</rasd:Parent>
         <rasd:ResourceType>15</rasd:ResourceType>
       </Item>
@@ -329,15 +326,15 @@ EOF
 echo "🔐 Generating checksum manifest..."
 FILE_DEST_SUM=$(sha256sum "${FILE_NAME}.${FILE_DEST_EXT}" | cut -d " " -f1)
 FILE_OVF_SUM=$(sha256sum "${FILE_NAME}.ovf" | cut -d " " -f1)
-ISO_FILE_SUM=$(sha256sum "${ISO_FILE_NAME}" | cut -d " " -f1) # 🚀 新增 ISO 校验
+ISO_FILE_SUM=$(sha256sum "${ISO_FILE_NAME}" | cut -d " " -f1)
 
 cat > "${FILE_NAME}.${FILE_SIGN_EXT}" << MANIFEST
 SHA256(${FILE_NAME}.${FILE_DEST_EXT})= ${FILE_DEST_SUM}
 SHA256(${FILE_NAME}.ovf)= ${FILE_OVF_SUM}
-SHA256(${ISO_FILE_NAME})= ${ISO_FILE_SUM} # 🚀 新增 ISO 校验
+SHA256(${ISO_FILE_NAME})= ${ISO_FILE_SUM}
 MANIFEST
 
-# --- 🚀 区域 3: OVA 打包 (包含 ISO 文件) ---
+# --- 区域 3: OVA 打包 (包含 ISO 文件) ---
 
 # Package OVA file
 echo "📦 Packaging OVA file..."
@@ -345,7 +342,7 @@ tar -cf "${FILE_NAME}.ova" \
     "${FILE_NAME}.ovf" \
     "${FILE_NAME}.${FILE_SIGN_EXT}" \
     "${FILE_NAME}.${FILE_DEST_EXT}" \
-    "${ISO_FILE_NAME}" # 🚀 关键：打包 ConfigDrive ISO
+    "${ISO_FILE_NAME}" # 关键：打包 ConfigDrive ISO
 
 # --- 区域 3: 结束 ---
 
@@ -364,5 +361,6 @@ echo "║ Disk: ${disk_size_gb}GB"
 echo "║ Hostname: ${hostname}"
 echo "║ Default User: ${username}"
 echo "║ Config Method: NoCloud/ConfigDrive (ISO)"
+echo "║ Auto Start: Disabled 🚀"
 echo "╚════════════════════════════════════════╝"
 echo ""
