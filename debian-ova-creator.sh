@@ -122,7 +122,7 @@ FILE_NAME="debian-${DEBIAN_VERSION}-genericcloud-${DEBIAN_ARCH}"
 FILE_ORIG_EXT="qcow2"
 FILE_DEST_EXT="vmdk"
 FILE_SIGN_EXT="mf"
-FILE_ORIG_URL="https://cdimage.debian.org/images/cloud/${DEBIAN_NAME}/latest/${FILE_NAME}.${FILE_ORIG_EXT}"
+FILE_ORIG_URL="https://cloud.debian.org/images/cloud/${DEBIAN_NAME}/latest/${FILE_NAME}.${FILE_ORIG_EXT}"
 
 OVF_OS_ID="96"
 OVF_OS_TYPE="debian11_64Guest"
