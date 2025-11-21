@@ -168,6 +168,7 @@ chpasswd:
   expire: false
 
 packages:
+  - cloud-init
   - open-vm-tools
 
 runcmd:
