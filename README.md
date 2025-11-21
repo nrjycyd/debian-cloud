@@ -80,7 +80,7 @@ sudo ./debian-ova-creator.sh \
 登录系统后，立即运行以下命令修改当前用户的密码：
 
 ```bash
-passwd
+sudo passwd debian
 ```
 
 系统会提示：
