@@ -156,13 +156,17 @@ EOFCONFIG
 
 if [[ -n "$username" ]]; then
     cat >> "$CLOUD_CONFIG_FILE" << EOFCONFIG
+#cloud-config
 users:
   - name: $username
-    groups: sudo
-    shell: /bin/bash
     sudo: ['ALL=(ALL) NOPASSWD:ALL']
-    plain_text_passwd: '$password'
+    shell: /bin/bash
     lock_passwd: false
+
+chpasswd:
+  list: |
+    $username:$password
+  expire: false
 EOFCONFIG
 
     if [[ -n "$ssh_public_key" ]] && [[ -f "$ssh_public_key" ]]; then
