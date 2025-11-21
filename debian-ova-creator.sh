@@ -76,8 +76,8 @@ if ! [[ "$memory" =~ ^[0-9]+$ ]] || [ "$memory" -lt 256 ]; then
     exit 1
 fi
 
-if ! [[ "$disk_size_gb" =~ ^[0-9]+$ ]] || [ "$disk_size_gb" -lt 5 ]; then
-    echo "❌ Error: Disk size must be at least 5GB" >&2
+if ! [[ "$disk_size_gb" =~ ^[0-9]+$ ]] || [ "$disk_size_gb" -lt 2 ]; then
+    echo "❌ Error: Disk size must be at least 2GB" >&2
     exit 1
 fi
 
