@@ -1,4 +1,4 @@
-# 🚀 Debian OVA Builder (Internal Tools)
+# 🚀 Debian Cloud OVA Builder (Internal Tools)
 
 这是一个用于自动化构建 Debian Cloud 镜像（OVA 格式）的工具集。它基于 **Debian 官方云镜像**（`genericcloud`，源自 [cloud.debian.org](https://cloud.debian.org/images/cloud/)），通过封装 Cloud-Init 配置，快速生成可直接导入 **VMware ESXi**、**VMware Workstation** 以及 **VirtualBox** 的虚拟机模板。
 
