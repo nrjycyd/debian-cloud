@@ -151,18 +151,21 @@ META_CONFIG_FILE=$(mktemp)
 
 # 1. User-Data (Cloud-Config) 内容
 cat > "$CLOUD_CONFIG_FILE" << 'EOFCONFIG'
-#!/bin/cloud-config
+#cloud-config
 EOFCONFIG
 
 if [[ -n "$username" ]]; then
     cat >> "$CLOUD_CONFIG_FILE" << EOFCONFIG
 users:
   - name: $username
-    groups: sudo
+    sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
-    sudo: ['ALL=(ALL) NOPASSWD:ALL']
-    plain_text_passwd: '$password'
     lock_passwd: false
+
+chpasswd:
+  list: |
+    $username:$password
+  expire: false
 EOFCONFIG
 
     if [[ -n "$ssh_public_key" ]] && [[ -f "$ssh_public_key" ]]; then
