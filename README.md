@@ -112,6 +112,20 @@ sudo chage -d 0 <username>
 
 -----
 
+## ⚙️ 初始系统配置
+
+镜像默认使用 UTC 时区。为了便于日志查看和定时任务管理，建议在首次启动后根据实际需求调整设置。
+
+### 1. 修改时区 (Timezone)
+
+默认时区为 UTC。如果你在中国大陆地区使用，建议修改为 `Asia/Shanghai` (CST)。
+
+```bash
+sudo dpkg-reconfigure tzdata
+```
+
+-----
+
 ## ❓ 常见问题
 
 **Q: 导入 VMware 后无法获取 IP？**
