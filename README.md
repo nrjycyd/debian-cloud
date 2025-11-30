@@ -114,9 +114,56 @@ sudo chage -d 0 <username>
 
 ## ⚙️ 初始系统配置
 
-镜像默认使用 UTC 时区。为了便于日志查看和定时任务管理，建议在首次启动后根据实际需求调整设置。
+### 1. 替换软件源
 
-### 1. 修改时区 (Timezone)
+> [!note]
+>
+> Debian 13 软件源变更为 `DEB822` 格式 `/etc/apt/sources.list.d/debian.sources` ，不再是传统格式 `/etc/apt/sources.list`
+
+将 `/etc/apt/sources.list.d/debian.sources` 中默认源全部删除，将其替换为清华源
+
+```
+Types: deb
+URIs: https://mirrors.tuna.tsinghua.edu.cn/debian
+Suites: trixie trixie-updates trixie-backports
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+# 默认注释了源码镜像以提高 apt update 速度，如有需要可自行取消注释
+# Types: deb-src
+# URIs: https://mirrors.tuna.tsinghua.edu.cn/debian
+# Suites: trixie trixie-updates trixie-backports
+# Components: main contrib non-free non-free-firmware
+# Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+# 以下安全更新软件源包含了官方源与镜像站配置，如有需要可自行修改注释切换
+Types: deb
+URIs: https://security.debian.org/debian-security
+Suites: trixie-security
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+# Types: deb-src
+# URIs: https://security.debian.org/debian-security
+# Suites: trixie-security
+# Components: main contrib non-free non-free-firmware
+# Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+```
+更新源
+
+```
+sudo apt update
+```
+
+### 2. 安装虚拟机工具集（非必须）
+
+Debian Cloud 镜像安装时，如果未联网可能出现工具集安装失败，建议手动安装。
+
+```bash
+sudo apt install open-vm-tools
+```
+
+### 3. 修改时区 (Timezone)
 
 默认时区为 UTC。如果你在中国大陆地区使用，建议修改为 `Asia/Shanghai` (CST)。
 
